@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+    }
+    
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #f8f9fa;
+      color: #202124;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #dadce0;
+    }
+    
+    .header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      color: #1a73e8;
+    }
+    
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 500;
+      color: #1a73e8;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #5f6368;
+      text-transform: uppercase;
+    }
+    
+    .stat-item.warning .stat-value {
+      color: #ea8600;
+    }
+    
+    .stat-item.success .stat-value {
+      color: #1e8e3e;
+    }
+    
+    .actions-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    
+    .btn-primary {
+      background: #1a73e8;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #1557b0;
+    }
+    
+    .btn-secondary {
+      background: #e8eaed;
+      color: #3c4043;
+    }
+    
+    .btn-secondary:hover {
+      background: #dadce0;
+    }
+    
+    .btn-success {
+      background: #1e8e3e;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #137333;
+    }
+    
+    .btn-small {
+      padding: 4px 12px;
+      font-size: 12px;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .name-list {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .name-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f3f4;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .name-item:last-child {
+      border-bottom: none;
+    }
+    
+    .name-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .name-info {
+      flex: 1;
+    }
+    
+    .name-raw {
+      font-weight: 500;
+      font-size: 15px;
+      color: #202124;
+      margin-bottom: 4px;
+    }
+    
+    .name-meta {
+      font-size: 12px;
+      color: #5f6368;
+    }
+    
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    
+    .suggestion-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: #e8f0fe;
+      color: #1a73e8;
+      border-radius: 16px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .suggestion-chip:hover {
+      background: #d2e3fc;
+    }
+    
+    .suggestion-chip.high-confidence {
+      background: #e6f4ea;
+      color: #1e8e3e;
+    }
+    
+    .suggestion-score {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+    
+    .name-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #5f6368;
+    }
+    
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e8eaed;
+      border-top-color: #1a73e8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5f6368;
+    }
+    
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #323232;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1000;
+    }
+    
+    .toast.show {
+      opacity: 1;
+    }
+    
+    .toast.success {
+      background: #1e8e3e;
+    }
+    
+    .toast.error {
+      background: #d93025;
+    }
+    
+    /* Custom input for new name */
+    .custom-input-wrapper {
+      display: none;
+      margin-top: 8px;
+    }
+    
+    .custom-input-wrapper.show {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .custom-input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .custom-input:focus {
+      outline: none;
+      border-color: #1a73e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🔍 Player Name Checker</h2>
+    <button class="btn btn-secondary" onclick="closeDialog()">Close</button>
+  </div>
+  
+  <div id="stats-bar" class="stats-bar" style="display: none;">
+    <div class="stat-item">
+      <div class="stat-value" id="stat-total">-</div>
+      <div class="stat-label">Preferred Names</div>
+    </div>
+    <div class="stat-item success">
+      <div class="stat-value" id="stat-matched">-</div>
+      <div class="stat-label">Matched</div>
+    </div>
+    <div class="stat-item warning">
+      <div class="stat-value" id="stat-unmatched">-</div>
+      <div class="stat-label">Need Review</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="stat-rate">-</div>
+      <div class="stat-label">Match Rate</div>
+    </div>
+  </div>
+  
+  <div class="actions-bar">
+    <button class="btn btn-primary" onclick="runScan()">
+      🔄 Scan Event Rosters
+    </button>
+    <button class="btn btn-secondary" id="btn-auto-correct" onclick="autoCorrect()" disabled>
+      ⚡ Auto-Correct High Confidence
+    </button>
+  </div>
+  
+  <div id="loading" class="loading" style="display: none;">
+    <div class="spinner"></div>
+    <div>Scanning event rosters...</div>
+  </div>
+  
+  <div id="empty-state" class="empty-state">
+    <div class="icon">📋</div>
+    <div><strong>Click "Scan Event Rosters"</strong></div>
+    <div style="margin-top: 8px;">to check for unrecognized player names</div>
+  </div>
+  
+  <div id="name-list" class="name-list" style="display: none;"></div>
+  
+  <div id="all-good" class="empty-state" style="display: none;">
+    <div class="icon">✅</div>
+    <div><strong>All player names are recognized!</strong></div>
+    <div style="margin-top: 8px;">No corrections needed</div>
+  </div>
+  
+  <div id="toast" class="toast"></div>
+  
+  <script>
+    let currentData = null;
+    
+    function runScan() {
+      showLoading(true);
+      document.getElementById('empty-state').style.display = 'none';
+      document.getElementById('all-good').style.display = 'none';
+      document.getElementById('name-list').style.display = 'none';
+      
+      google.script.run
+        .withSuccessHandler(onScanComplete)
+        .withFailureHandler(onError)
+        .runNameScanForDialog();
+    }
+    
+    function onScanComplete(data) {
+      showLoading(false);
+      currentData = data;
+      
+      // Update stats
+      document.getElementById('stats-bar').style.display = 'flex';
+      document.getElementById('stat-total').textContent = data.stats.totalPreferredNames;
+      document.getElementById('stat-matched').textContent = data.stats.matched;
+      document.getElementById('stat-unmatched').textContent = data.stats.unmatched;
+      document.getElementById('stat-rate').textContent = data.stats.matchRate;
+      
+      // Enable auto-correct if there are unmatched
+      document.getElementById('btn-auto-correct').disabled = data.unmatched.length === 0;
+      
+      // Show results
+      if (data.unmatched.length === 0) {
+        document.getElementById('all-good').style.display = 'block';
+      } else {
+        renderNameList(data.unmatched);
+      }
+    }
+    
+    function renderNameList(names) {
+      const container = document.getElementById('name-list');
+      container.innerHTML = '';
+      
+      names.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'name-item';
+        div.id = 'name-item-' + index;
+        
+        let suggestionsHtml = '';
+        if (item.suggestions.length > 0) {
+          suggestionsHtml = '<div class="suggestions">';
+          item.suggestions.forEach(s => {
+            const isHigh = parseInt(s.score) >= 80;
+            suggestionsHtml += `
+              <span class="suggestion-chip ${isHigh ? 'high-confidence' : ''}" 
+                    onclick="applySuggestion('${escapeHtml(item.name)}', '${escapeHtml(s.name)}', ${index})">
+                ${escapeHtml(s.name)}
+                <span class="suggestion-score">${s.score}%</span>
+              </span>
+            `;
+          });
+          suggestionsHtml += '</div>';
+        }
+        
+        div.innerHTML = `
+          <div class="name-info">
+            <div class="name-raw">${escapeHtml(item.name)}</div>
+            <div class="name-meta">
+              Found ${item.count} time(s) • First seen in: ${escapeHtml(item.firstSheet)}
+            </div>
+            ${suggestionsHtml}
+            <div class="custom-input-wrapper" id="custom-${index}">
+              <input type="text" class="custom-input" id="custom-input-${index}" 
+                     placeholder="Enter correct spelling..." value="${escapeHtml(item.name)}">
+              <button class="btn btn-success btn-small" onclick="applyCustom('${escapeHtml(item.name)}', ${index})">
+                Apply
+              </button>
+            </div>
+          </div>
+          <div class="name-actions">
+            <button class="btn btn-primary btn-small" onclick="addAsNew('${escapeHtml(item.name)}', ${index})">
+              + Add as New
+            </button>
+            <button class="btn btn-secondary btn-small" onclick="showCustomInput(${index})">
+              ✏️ Custom
+            </button>
+            <button class="btn btn-secondary btn-small" onclick="ignoreName('${escapeHtml(item.name)}', ${index})">
+              🚫 Ignore
+            </button>
+          </div>
+        `;
+        
+        container.appendChild(div);
+      });
+      
+      container.style.display = 'block';
+    }
+    
+    function applySuggestion(oldName, newName, index) {
+      showToast('Applying correction...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showToast(`Fixed "${oldName}" → "${newName}" (${result.cellsFixed} cells)`, 'success');
+            removeNameItem(index);
+            updateStats();
+          } else {
+            showToast('Error: ' + result.error, 'error');
+          }
+        })
+        .withFailureHandler(onError)
+        .applyNameCorrectionFromDialog(oldName, newName);
+    }
+    
+    function addAsNew(name, index) {
+      showToast('Adding new player...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showToast(`Added "${name}" to PreferredNames`, 'success');
+            removeNameItem(index);
+            updateStats();
+          } else {
+            showToast('Player already exists or error', 'error');
+          }
+        })
+        .withFailureHandler(onError)
+        .addNewPlayerFromDialog(name);
+    }
+    
+    function showCustomInput(index) {
+      document.getElementById('custom-' + index).classList.add('show');
+      document.getElementById('custom-input-' + index).focus();
+    }
+    
+    function applyCustom(oldName, index) {
+      const newName = document.getElementById('custom-input-' + index).value.trim();
+      if (!newName) {
+        showToast('Please enter a name', 'error');
+        return;
+      }
+      applySuggestion(oldName, newName, index);
+    }
+    
+    function ignoreName(name, index) {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showToast(`Ignored "${name}"`, 'success');
+            removeNameItem(index);
+            updateStats();
+          }
+        })
+        .withFailureHandler(onError)
+        .ignoreNameFromDialog(name);
+    }
+    
+    function autoCorrect() {
+      if (!confirm('This will auto-correct all names with 90%+ match confidence. Continue?')) {
+        return;
+      }
+      
+      showToast('Running auto-correct...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          showToast(`Auto-corrected ${result.corrected} names, ${result.skipped} skipped`, 'success');
+          runScan(); // Refresh
+        })
+        .withFailureHandler(onError)
+        .autoCorrectHighConfidence(90);
+    }
+    
+    function removeNameItem(index) {
+      const item = document.getElementById('name-item-' + index);
+      if (item) {
+        item.style.opacity = '0.5';
+        item.style.pointerEvents = 'none';
+        setTimeout(() => item.remove(), 300);
+      }
+      
+      // Check if list is now empty
+      setTimeout(() => {
+        const remaining = document.querySelectorAll('.name-item');
+        if (remaining.length === 0) {
+          document.getElementById('name-list').style.display = 'none';
+          document.getElementById('all-good').style.display = 'block';
+        }
+      }, 400);
+    }
+    
+    function updateStats() {
+      // Decrement unmatched count
+      const unmatchedEl = document.getElementById('stat-unmatched');
+      const current = parseInt(unmatchedEl.textContent) || 0;
+      if (current > 0) {
+        unmatchedEl.textContent = current - 1;
+      }
+      
+      // Increment matched count
+      const matchedEl = document.getElementById('stat-matched');
+      const matched = parseInt(matchedEl.textContent) || 0;
+      matchedEl.textContent = matched + 1;
+    }
+    
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+    
+    function showToast(message, type) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + (type || '');
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+    
+    function onError(error) {
+      showLoading(false);
+      showToast('Error: ' + error.message, 'error');
+      console.error(error);
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function closeDialog() {
+      google.script.host.close();
+    }
+  </script>
+</body>
+</html>

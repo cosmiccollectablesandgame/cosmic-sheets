@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      margin: 0;
+      padding: 8px 10px;
+      background: #f5f5f5;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 4px 0 2px;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .summary {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .summary-item {
+      background: #fff;
+      border-radius: 6px;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      flex: 1 1 100px;
+    }
+
+    .summary-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #777;
+    }
+
+    .summary-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .summary-item.pending .summary-value { color: #a35b00; }
+    .summary-item.ready .summary-value { color: #005c99; }
+    .summary-item.completed .summary-value { color: #1c6b2b; }
+    .summary-item.balance .summary-value { color: #c41e3a; }
+
+    .filters {
+      margin-bottom: 8px;
+      background: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+
+    .filters-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters-row:last-child {
+      margin-bottom: 0;
+    }
+
+    input[type="text"], select {
+      font-size: 12px;
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    select {
+      min-width: 90px;
+    }
+
+    label {
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      margin: 0;
+    }
+
+    .section-title {
+      margin: 10px 0 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-count {
+      font-size: 11px;
+      font-weight: normal;
+      color: #888;
+    }
+
+    .preorder-card {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+    }
+
+    .preorder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .customer {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+
+    .pill.pending { background: #fff4e5; color: #a35b00; }
+    .pill.ready { background: #e5f5ff; color: #005c99; }
+    .pill.completed { background: #e7f7e5; color: #1c6b2b; }
+    .pill.cancelled { background: #f5f5f5; color: #666; }
+
+    .preorder-body div {
+      font-size: 11px;
+      color: #444;
+    }
+
+    .preorder-body .balance-due {
+      color: #c41e3a;
+      font-weight: 500;
+    }
+
+    .preorder-body .balance-zero {
+      color: #1c6b2b;
+    }
+
+    .empty {
+      font-size: 11px;
+      color: #777;
+      font-style: italic;
+      margin-bottom: 6px;
+    }
+
+    .status {
+      font-size: 11px;
+      color: #777;
+      margin-top: 4px;
+    }
+
+    .status.error {
+      color: #c41e3a;
+    }
+
+    .section-container {
+      margin-bottom: 12px;
+    }
+
+    .refresh-btn {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .refresh-btn:hover {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Preorder Status</h2>
+  <div class="subtitle">View pending payments, ready pickups, and completed orders</div>
+
+  <!-- Summary Bar -->
+  <div class="summary">
+    <div class="summary-item pending">
+      <div class="summary-label">Pending Payment</div>
+      <div class="summary-value" id="pendingCount">0</div>
+    </div>
+    <div class="summary-item ready">
+      <div class="summary-label">Ready for Pickup</div>
+      <div class="summary-value" id="readyCount">0</div>
+    </div>
+    <div class="summary-item completed">
+      <div class="summary-label">Completed</div>
+      <div class="summary-value" id="completedCount">0</div>
+    </div>
+    <div class="summary-item balance">
+      <div class="summary-label">Total Balance Due</div>
+      <div class="summary-value">$<span id="totalBalanceDue">0.00</span></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filters-row">
+      <input id="search" type="text" placeholder="Search by customer, set, or item">
+      <button class="refresh-btn" onclick="loadStatus()">Refresh</button>
+    </div>
+    <div class="filters-row">
+      <select id="sortBy">
+        <option value="Created_At">Created Date</option>
+        <option value="Target_Payoff">Target Payoff</option>
+        <option value="Balance_Due">Balance Due</option>
+      </select>
+      <select id="sortDir">
+        <option value="asc">Asc</option>
+        <option value="desc">Desc</option>
+      </select>
+      <label>
+        <input type="checkbox" id="includeCancelled">
+        Show cancelled
+      </label>
+    </div>
+  </div>
+
+  <!-- Status message -->
+  <div id="status" class="status"></div>
+
+  <!-- Pending Payment Section -->
+  <div class="section-container">
+    <div class="section-title">
+      Pending Payment
+      <span class="section-count" id="pendingLabel">(0)</span>
+    </div>
+    <div id="pendingList"></div>
+  </div>
+
+  <!-- Ready for Pickup Section -->
+  <div class="section-container">
+    <div class="section-title">
+      Ready for Pickup
+      <span class="section-count" id="readyLabel">(0)</span>
+    </div>
+    <div id="readyList"></div>
+  </div>
+
+  <!-- Completed Section -->
+  <div class="section-container">
+    <div class="section-title">
+      Completed
+      <span class="section-count" id="completedLabel">(0)</span>
+    </div>
+    <div id="completedList"></div>
+  </div>
+
+  <script>
+    function loadStatus() {
+      var filters = {
+        search: document.getElementById('search').value.trim() || null,
+        includeCancelled: document.getElementById('includeCancelled').checked,
+        sortBy: document.getElementById('sortBy').value,
+        sortDir: document.getElementById('sortDir').value
+      };
+
+      setStatus('Loading...');
+
+      google.script.run
+        .withSuccessHandler(renderStatus)
+        .withFailureHandler(function(err) {
+          setStatus('Error: ' + (err && err.message ? err.message : err), true);
+        })
+        .getPreordersByStatus(filters);
+    }
+
+    function setStatus(msg, isError) {
+      var el = document.getElementById('status');
+      if (el) {
+        el.textContent = msg || '';
+        el.className = 'status' + (isError ? ' error' : '');
+      }
+    }
+
+    function renderStatus(data) {
+      setStatus('');
+
+      // Update summary
+      document.getElementById('pendingCount').textContent = data.summary.pendingPaymentCount || 0;
+      document.getElementById('readyCount').textContent = data.summary.readyForPickupCount || 0;
+      document.getElementById('completedCount').textContent = data.summary.completedCount || 0;
+      document.getElementById('totalBalanceDue').textContent =
+        (data.summary.totalBalanceDue || 0).toFixed(2);
+
+      // Update section labels
+      document.getElementById('pendingLabel').textContent = '(' + (data.summary.pendingPaymentCount || 0) + ')';
+      document.getElementById('readyLabel').textContent = '(' + (data.summary.readyForPickupCount || 0) + ')';
+      document.getElementById('completedLabel').textContent = '(' + (data.summary.completedCount || 0) + ')';
+
+      renderList('pendingList', data.pendingPayment, 'pending');
+      renderList('readyList', data.readyForPickup, 'ready');
+      renderList('completedList', data.completed, 'completed');
+    }
+
+    function renderList(containerId, list, bucket) {
+      var container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      if (!list || !list.length) {
+        container.innerHTML = '<div class="empty">No records.</div>';
+        return;
+      }
+
+      list.forEach(function(p) {
+        var card = document.createElement('div');
+        card.className = 'preorder-card';
+
+        var header = document.createElement('div');
+        header.className = 'preorder-header';
+
+        var customer = document.createElement('span');
+        customer.className = 'customer';
+        customer.textContent = p.preferred_name_id || '(unknown customer)';
+
+        var pill = document.createElement('span');
+        var statusText = p.Status || '';
+        var statusNorm = statusText.toUpperCase().trim();
+        var pillClass = bucket;
+
+        // Determine pill class and text
+        if (statusNorm === 'CANCELLED' || statusNorm === 'CANCELED') {
+          pillClass = 'cancelled';
+        }
+
+        pill.className = 'pill ' + pillClass;
+        pill.textContent = statusText || (
+          bucket === 'pending' ? 'Pending Payment' :
+          bucket === 'ready' ? 'Ready for Pickup' :
+          'Completed'
+        );
+
+        header.appendChild(customer);
+        header.appendChild(pill);
+
+        var body = document.createElement('div');
+        body.className = 'preorder-body';
+
+        var line1 = document.createElement('div');
+        line1.textContent =
+          (p.Preorder_ID || 'PO-?') + ' \u2022 ' +
+          (p.Set_Name || 'Unknown Set') + ' \u2013 ' +
+          (p.Item_Name || 'Unknown Item') +
+          (p.Qty ? ' (x' + p.Qty + ')' : '');
+
+        var balance = document.createElement('div');
+        var balanceVal = Number(p.Balance_Due) || 0;
+        balance.textContent = 'Balance Due: $' + balanceVal.toFixed(2);
+        balance.className = balanceVal > 0 ? 'balance-due' : 'balance-zero';
+
+        var created = document.createElement('div');
+        created.textContent = 'Created: ' + (p.Created_At || 'N/A');
+
+        body.appendChild(line1);
+        body.appendChild(balance);
+        body.appendChild(created);
+
+        // Add Target Payoff if present
+        if (p.Target_Payoff) {
+          var payoff = document.createElement('div');
+          payoff.textContent = 'Target Payoff: ' + p.Target_Payoff;
+          body.appendChild(payoff);
+        }
+
+        card.appendChild(header);
+        card.appendChild(body);
+        container.appendChild(card);
+      });
+    }
+
+    // Hook up events
+    document.addEventListener('DOMContentLoaded', function() {
+      ['search', 'sortBy', 'sortDir', 'includeCancelled'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('change', function() {
+          loadStatus();
+        });
+
+        if (id === 'search') {
+          var debounceTimer;
+          el.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+              loadStatus();
+            } else {
+              // Debounce search input
+              clearTimeout(debounceTimer);
+              debounceTimer = setTimeout(function() {
+                loadStatus();
+              }, 300);
+            }
+          });
+        }
+      });
+
+      // Initial load
+      loadStatus();
+    });
+  </script>
+</body>
+</html>
